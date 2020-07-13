@@ -1,0 +1,87 @@
+% Main program:  DEM main program
+% Author: Zhao Yu Liu Xiaolong Zhang Quan Mingzhi Wang
+% Date: 10/7/2020
+% Modified Version: v1.0
+
+clear
+%Initialization
+
+%Iput_test
+%Iput_test2
+  %simulation settings
+sim.duration=6; %s total simulation duration
+sim.step=8e-04;  %s time step for each interation
+sim.domain = [0 20 0 20];%m Simulation domain [min(y) max(y) min(x) max(x) min(z) max(z)]
+sim.g = [0;-9.81]; %m/s2 Gravity [g_x g_y g_z], constant force
+  %data orgnization settings
+sim.data_step = 100; %Data saving step                   
+sim.result_fol = 'results'; %Folder name to save data
+
+  %material settings [mat1 mat2 ... matN] 
+mat.E = 5.368e9; % Pa                        Young's modulus 
+mat.v = 0.22; %                              Poisson's ratio
+
+mat.rho = 1050; % kg/m3                      Density
+
+  %Boundary settings
+Boundary.pos = []; % [0,20;0,20;0,20];
+wall.mat = []; % 1;
+%%
+  %小球参数设置 
+  
+part.ID = [1 2 3 4]';
+part.r = [1 1 1 1]';
+part.pos = [16 11;...
+            10 11;...
+            17 4;...
+            -2 -2];%central position [y x z; y x z]
+part.vel = [-6 0 ; ...
+             0 0;...
+           -10 0; ...
+             0 0]; %intial velocity distriubtion [v_y v_x v_z; v_y v_x v_z]
+part.a = [0 0; ...
+          0 0;...
+          0 0; ...
+          0 0]; %intial acceleration distribution [a_y a_x a_z; a_y a_x a_z]
+part.mat = [1 1 1 1]';% matrial index    
+
+
+%particle physicalproperpies calculation
+part.m = (4/3)*pi*part.r.^3.*mat.rho(part.mat);                   %mass
+
+part.E = mat.E(part.mat);
+part.v2 = mat.v(part.mat).^2;
+part.v = mat.v(part.mat);
+
+%%
+%Drawing the initial diagram
+h = figure;
+figure(h);
+       clf; 
+       bar(4,30,3,'FaceColor','white','EdgeColor','r')
+       axis([-2 22 0 22]);
+       axis equal;
+       hold on;
+       for i = 1:length(part.ID)
+    
+        r = part.r(i);
+        xc = part.pos(i,2);
+        yc = part.pos(i,1);
+
+        viscircles([xc,yc],r,...
+            'Color','b');
+       end
+         viscircles([17,13],2,...
+            'Color','r',...
+            'LineStyle','--');
+%mannual sellection
+%交互界面的设置
+uiwait(msgbox('接下来你要创建一个圆'));
+uiwait(msgbox('让运动的小球碰到红色区域即成功'));
+uiwait(msgbox('请点击鼠标以确定圆心,再延长直线确定半径，最后双击直线','操作说明'));
+line=imline;
+Position = wait(line);
+part.r(4)=sqrt((Position(1,1)-Position(2,1))^2+...
+    (Position(1,2)-Position(2,2))^2);
+part.pos(4,2)=Position(1,1);
+part.pos(4,1)=Position(1,2);
